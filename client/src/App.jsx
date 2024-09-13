@@ -12,8 +12,9 @@ import {
   Typography,
 } from "@mui/material";
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { APIROOT } from "./constants";
+import { useNavigate, useParams } from "react-router-dom";
 
 const theme = createTheme({
   typography: {
@@ -30,21 +31,30 @@ const theme = createTheme({
 });
 
 function App() {
+  const { id, name } = useParams();
   const [link, setLink] = useState("");
   const [title, setTitle] = useState(null);
   const [data, setData] = useState(null);
+  const navigate = useNavigate();
 
-  async function scrape() {
+  useEffect(() => {
+    load();
+  }, [id, name]);
+
+  function handleClick() {
     const temp = link.split("/");
     setLink("");
     if (temp.length < 2) return;
 
-    const { data } = await axios.get(
-      `${APIROOT}/${temp[temp.length - 2]}/${temp[temp.length - 1].replace(
-        ".htm",
-        ""
-      )}`
+    navigate(
+      `${temp[temp.length - 2]}/${temp[temp.length - 1].replace(".htm", "")}`
     );
+  }
+
+  async function load() {
+    if (!id || !name) return;
+
+    const { data } = await axios.get(`${APIROOT}/${id}/${name}`);
 
     setTitle(data.name);
     setData(data.data);
@@ -168,12 +178,7 @@ function App() {
             onFocus={(e) => e.target.select()}
             sx={{ pr: "0.5rem" }}
           />
-          <Button
-            variant="contained"
-            onClick={() => {
-              scrape();
-            }}
-          >
+          <Button variant="contained" onClick={handleClick}>
             Go
           </Button>
         </Stack>
