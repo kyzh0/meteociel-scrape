@@ -22,9 +22,9 @@ app.get("/:id/:name/basic", async (req, res) => {
     }
 
     // basic data
-    const start =
+    let start =
       data.indexOf('<td rowspan=15 align="center" valign="center">') + 46;
-    const end = data.indexOf("</td></tr></table><br><table width=100%");
+    let end = data.indexOf("</td></tr></table><br><table width=100%");
     const dayTexts = data
       .slice(start, end)
       .replaceAll(/<td rowspan=\d+ align="center" valign="center">/g, "|")
@@ -49,6 +49,18 @@ app.get("/:id/:name/basic", async (req, res) => {
         matches = text.match(/>-?\d+.+C</g);
         if (matches && matches.length == 1) {
           dataPoint.temperature = matches[0].slice(1, matches[0].indexOf(" "));
+        }
+
+        // wind dir img
+        start = text.indexOf("src='") + 5;
+        end = text.indexOf("' alt", start);
+        dataPoint.windDirectionImage = text.slice(start, end);
+
+        // wind avg + gust
+        matches = text.slice(end).match(/>\d+</g);
+        if (matches && matches.length == 2) {
+          dataPoint.windAverage = matches[0].replace(">", "").replace("<", "");
+          dataPoint.windGust = matches[1].replace(">", "").replace("<", "");
         }
 
         result.data.push(dataPoint);
