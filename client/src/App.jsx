@@ -18,13 +18,14 @@ import { APIROOT } from "./constants";
 const theme = createTheme({
   typography: {
     caption: {
-      fontSize: "0.6rem",
+      fontSize: "0.7rem",
     },
   },
 });
 
 function App() {
   const [link, setLink] = useState("");
+  const [title, setTitle] = useState(null);
   const [data, setData] = useState(null);
 
   async function scrape() {
@@ -39,7 +40,8 @@ function App() {
       )}`
     );
 
-    setData(data);
+    setTitle(data.name);
+    setData(data.data);
   }
 
   return (
@@ -63,40 +65,86 @@ function App() {
             Go
           </Button>
         </Stack>
-        {data && <Typography>{data.name}</Typography>}
+        {title && (
+          <Stack direction="row" alignItems="center" justifyContent="center">
+            <Typography>{title}</Typography>
+          </Stack>
+        )}
         {data && (
-          <Table>
+          <Table padding="none">
             <TableHead>
               <TableRow>
-                <TableCell sx={{ padding: 0 }}></TableCell>
-                <TableCell sx={{ padding: 0 }}>
-                  <Typography variant="caption">°C</Typography>
+                <TableCell></TableCell>
+                <TableCell>
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    justifyContent="center"
+                  >
+                    <Typography variant="caption">°C</Typography>
+                  </Stack>
                 </TableCell>
-                <TableCell sx={{ padding: 0 }}></TableCell>
-                <TableCell sx={{ padding: 0 }}>
-                  <Typography variant="caption">2m</Typography>
+                <TableCell></TableCell>
+                <TableCell>
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    justifyContent="center"
+                  >
+                    <Typography variant="caption">2m</Typography>
+                  </Stack>
                 </TableCell>
-                <TableCell sx={{ padding: 0 }}>
-                  <Typography variant="caption">1500m</Typography>
+                <TableCell>
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    justifyContent="center"
+                  >
+                    <Typography variant="caption">1500m</Typography>
+                  </Stack>
                 </TableCell>
-                <TableCell sx={{ padding: 0 }}>
-                  <Typography variant="caption">2000m</Typography>
+                <TableCell>
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    justifyContent="center"
+                  >
+                    <Typography variant="caption">2000m</Typography>
+                  </Stack>
                 </TableCell>
-                <TableCell sx={{ padding: 0 }}>
-                  <Typography variant="caption">3000m</Typography>
+                <TableCell>
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    justifyContent="center"
+                  >
+                    <Typography variant="caption">3000m</Typography>
+                  </Stack>
                 </TableCell>
-                <TableCell sx={{ padding: 0 }}>
-                  <Typography variant="caption">4200m</Typography>
+                <TableCell>
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    justifyContent="center"
+                  >
+                    <Typography variant="caption">4200m</Typography>
+                  </Stack>
                 </TableCell>
-                <TableCell sx={{ padding: 0 }}>
-                  <Typography variant="caption">5600m</Typography>
+                <TableCell>
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    justifyContent="center"
+                  >
+                    <Typography variant="caption">5600m</Typography>
+                  </Stack>
                 </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {data.wrf.map((d) => (
+              {data.map((d) => (
                 <TableRow key={`${d.day} ${d.time}`}>
-                  <TableCell sx={{ padding: 0 }}>
+                  <TableCell sx={{ pt: "0.3rem", pb: "0.3rem" }}>
                     <Stack
                       direction="column"
                       alignItems="center"
@@ -106,48 +154,211 @@ function App() {
                       <Typography variant="caption">{d.time}</Typography>
                     </Stack>
                   </TableCell>
-                  <TableCell sx={{ padding: 0 }}>
-                    <Typography variant="caption">{d.temperature}</Typography>
-                  </TableCell>
-                  <TableCell sx={{ padding: 0 }}>
-                    <img src={d.meteoImage} />
-                  </TableCell>
-                  <TableCell sx={{ padding: 0 }}>
+                  <TableCell>
                     <Stack
-                      direction="row"
+                      direction="column"
                       alignItems="center"
                       justifyContent="center"
                     >
-                      <img src={d.windDirectionImage} />
                       <Typography variant="caption">
-                        {d.windAverage} - {d.windGust}
+                        {d.wrfTemperature}
+                      </Typography>
+                      <Typography variant="caption">
+                        {d.aromeTemperature ? d.aromeTemperature : "-"}
                       </Typography>
                     </Stack>
                   </TableCell>
-                  <TableCell sx={{ padding: 0 }}>
-                    <Typography variant="caption">
-                      {d.windAverageZ850}
-                    </Typography>
+                  <TableCell>
+                    <Stack
+                      direction="column"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      <img src={d.wrfMeteoImage} />
+                      {d.aromeMeteoImage ? (
+                        <img src={d.aromeMeteoImage} />
+                      ) : (
+                        <Typography variant="caption">-</Typography>
+                      )}
+                    </Stack>
                   </TableCell>
-                  <TableCell sx={{ padding: 0 }}>
-                    <Typography variant="caption">
-                      {d.windAverageZ800}
-                    </Typography>
+                  <TableCell>
+                    <Stack
+                      direction="column"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      <Stack
+                        direction="row"
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <img src={d.wrfWindDirectionImage} />
+                        <Typography variant="caption">
+                          {d.wrfWindAverage} - {d.wrfWindGust}
+                        </Typography>
+                      </Stack>
+                      <Stack
+                        direction="row"
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <img src={d.aromeWindDirectionImage} />
+                        <Typography variant="caption">
+                          {d.aromeWindAverage} - {d.aromeWindGust}
+                        </Typography>
+                      </Stack>
+                    </Stack>
                   </TableCell>
-                  <TableCell sx={{ padding: 0 }}>
-                    <Typography variant="caption">
-                      {d.windAverageZ700}
-                    </Typography>
+                  <TableCell>
+                    <Stack
+                      direction="column"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      <Stack
+                        direction="row"
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <img src={d.wrfWindDirectionImageZ850} />
+                        <Typography variant="caption">
+                          {d.wrfWindAverageZ850}
+                        </Typography>
+                      </Stack>
+                      <Stack
+                        direction="row"
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <img src={d.aromeWindDirectionImageZ850} />
+                        <Typography variant="caption">
+                          {d.aromeWindAverageZ850
+                            ? d.aromeWindAverageZ850
+                            : "-"}
+                        </Typography>
+                      </Stack>
+                    </Stack>
                   </TableCell>
-                  <TableCell sx={{ padding: 0 }}>
-                    <Typography variant="caption">
-                      {d.windAverageZ600}
-                    </Typography>
+                  <TableCell>
+                    <Stack
+                      direction="column"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      <Stack
+                        direction="row"
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <img src={d.wrfWindDirectionImageZ800} />
+                        <Typography variant="caption">
+                          {d.wrfWindAverageZ800}
+                        </Typography>
+                      </Stack>
+                      <Stack
+                        direction="row"
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <img src={d.aromeWindDirectionImageZ800} />
+                        <Typography variant="caption">
+                          {d.aromeWindAverageZ800
+                            ? d.aromeWindAverageZ800
+                            : "-"}
+                        </Typography>
+                      </Stack>
+                    </Stack>
                   </TableCell>
-                  <TableCell sx={{ padding: 0 }}>
-                    <Typography variant="caption">
-                      {d.windAverageZ500}
-                    </Typography>
+                  <TableCell>
+                    <Stack
+                      direction="column"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      <Stack
+                        direction="row"
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <img src={d.wrfWindDirectionImageZ700} />
+                        <Typography variant="caption">
+                          {d.wrfWindAverageZ700}
+                        </Typography>
+                      </Stack>
+                      <Stack
+                        direction="row"
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <img src={d.aromeWindDirectionImageZ700} />
+                        <Typography variant="caption">
+                          {d.aromeWindAverageZ700
+                            ? d.aromeWindAverageZ700
+                            : "-"}
+                        </Typography>
+                      </Stack>
+                    </Stack>
+                  </TableCell>
+                  <TableCell>
+                    <Stack
+                      direction="column"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      <Stack
+                        direction="row"
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <img src={d.wrfWindDirectionImageZ600} />
+                        <Typography variant="caption">
+                          {d.wrfWindAverageZ600}
+                        </Typography>
+                      </Stack>
+                      <Stack
+                        direction="row"
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <img src={d.aromeWindDirectionImageZ600} />
+                        <Typography variant="caption">
+                          {d.aromeWindAverageZ600
+                            ? d.aromeWindAverageZ600
+                            : "-"}
+                        </Typography>
+                      </Stack>
+                    </Stack>
+                  </TableCell>
+                  <TableCell>
+                    <Stack
+                      direction="column"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      <Stack
+                        direction="row"
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <img src={d.wrfWindDirectionImageZ500} />
+                        <Typography variant="caption">
+                          {d.wrfWindAverageZ500}
+                        </Typography>
+                      </Stack>
+                      <Stack
+                        direction="row"
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <img src={d.aromeWindDirectionImageZ500} />
+                        <Typography variant="caption">
+                          {d.aromeWindAverageZ500
+                            ? d.aromeWindAverageZ500
+                            : "-"}
+                        </Typography>
+                      </Stack>
+                    </Stack>
                   </TableCell>
                 </TableRow>
               ))}
