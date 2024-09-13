@@ -1,8 +1,10 @@
 import express from "express";
+import cors from "cors";
 import axios from "axios";
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 app.get("/:id/:name", async (req, res) => {
   const { id, name } = req.params;
@@ -22,24 +24,24 @@ app.get("/:id/:name", async (req, res) => {
       result.name = matches[0].slice(i, j);
     }
 
-    let start =
-      data.indexOf('<td rowspan=15 align="center" valign="center">') + 46;
+    let start = data.search(/<td rowspan=\d+ align="center" valign="center">/g);
     let end = data.indexOf("</td></tr></table><br><table width=100%");
     const dayTexts = data
       .slice(start, end)
-      .replaceAll(/<td rowspan=\d+ align="center" valign="center">/g, "|")
-      .split("|");
+      .replaceAll(/<td rowspan=\d+ align="center" valign="center">/g, "~?^|")
+      .split("~?^|");
 
     result.wrf = [];
-    for (const dayText of dayTexts) {
+    for (let i = 1; i < dayTexts.length; i++) {
+      const dayText = dayTexts[i];
       const day = dayText
         .slice(0, dayText.indexOf("<br></td>"))
         .replaceAll("<br>", " ")
         .trim();
 
       const hourTexts = dayText.split("<td>");
-      for (let i = 1; i < hourTexts.length; i++) {
-        const text = hourTexts[i];
+      for (let j = 1; j < hourTexts.length; j++) {
+        const text = hourTexts[j];
         const dataPoint = {
           day: day,
           time: text.slice(0, 5),
@@ -79,23 +81,23 @@ app.get("/:id/:name", async (req, res) => {
   ));
 
   if (data.length) {
-    let start =
-      data.indexOf('<td rowspan=15 align="center" valign="center">') + 46;
+    let start = data.search(/<td rowspan=\d+ align="center" valign="center">/);
     let end = data.indexOf("</td></tr></table><br><table width=100%");
     const dayTexts = data
       .slice(start, end)
-      .replaceAll(/<td rowspan=\d+ align="center" valign="center">/g, "|")
-      .split("|");
+      .replaceAll(/<td rowspan=\d+ align="center" valign="center">/g, "~?^|")
+      .split("~?^|");
 
-    for (const dayText of dayTexts) {
+    for (let i = 1; i < dayTexts.length; i++) {
+      const dayText = dayTexts[i];
       const day = dayText
         .slice(0, dayText.indexOf("<br></td>"))
         .replaceAll("<br>", " ")
         .trim();
 
       const hourTexts = dayText.split("<td>");
-      for (let i = 1; i < hourTexts.length; i++) {
-        const text = hourTexts[i];
+      for (let j = 1; j < hourTexts.length; j++) {
+        const text = hourTexts[j];
         const dataPoint = result.wrf.find(
           (x) => x.day == day && x.time == text.slice(0, 5)
         );
