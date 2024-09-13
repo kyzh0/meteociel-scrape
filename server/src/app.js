@@ -131,19 +131,31 @@ app.get("/:id/:name", async (req, res) => {
         end = text.indexOf("' alt", start);
         dataPoint.windDirectionImageZ500 = text.slice(start, end);
 
-        // // wind avg + gust
-        // matches = text.slice(end).match(/>\d+</g);
-        // if (matches && matches.length == 2) {
-        //   dataPoint.windAverage = matches[0].replace(">", "").replace("<", "");
-        //   dataPoint.windGust = matches[1].replace(">", "").replace("<", "");
-        // }
-
-        // // meteo img
-        // start = text.indexOf("src='", end) + 5;
-        // end = text.indexOf("'>", start);
-        // dataPoint.meteoImage = text.slice(start, end);
-
-        // result.wrf.push(dataPoint);
+        // wind avg
+        const matches = text.match(/>\s\d+</g);
+        if (matches && matches.length == 6) {
+          // skip 2m value
+          dataPoint.windAverageZ850 = matches[1]
+            .replace(">", "")
+            .replace("<", "")
+            .trim();
+          dataPoint.windAverageZ800 = matches[2]
+            .replace(">", "")
+            .replace("<", "")
+            .trim();
+          dataPoint.windAverageZ700 = matches[3]
+            .replace(">", "")
+            .replace("<", "")
+            .trim();
+          dataPoint.windAverageZ600 = matches[4]
+            .replace(">", "")
+            .replace("<", "")
+            .trim();
+          dataPoint.windAverageZ500 = matches[5]
+            .replace(">", "")
+            .replace("<", "")
+            .trim();
+        }
       }
     }
   }
