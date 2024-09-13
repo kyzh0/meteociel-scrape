@@ -107,6 +107,51 @@ function App() {
     }
   }
 
+  function getWindColor(wind) {
+    if (!wind) return "";
+
+    const w = Number(wind);
+    if (w < 2) {
+      return "#b4e8ff";
+    } else if (w < 4) {
+      return "#b4f3ff";
+    } else if (w < 6) {
+      return "#b4feff";
+    } else if (w < 8) {
+      return "#b4fff5";
+    } else if (w < 10) {
+      return "#b4ffec";
+    } else if (w < 12) {
+      return "#b4ffe0";
+    } else if (w < 14) {
+      return "#b4ffd5";
+    } else if (w < 16) {
+      return "#b4ffcc";
+    } else if (w < 18) {
+      return "#bfffb4";
+    } else if (w < 20) {
+      return "#cbffb4";
+    } else if (w < 22) {
+      return "#dcffb4";
+    } else if (w < 24) {
+      return "#ecffb4";
+    } else if (w < 26) {
+      return "#f9ffb4";
+    } else if (w < 28) {
+      return "#fff3b4";
+    } else if (w < 30) {
+      return "#ffe5b4";
+    } else if (w < 32) {
+      return "#ffd6b4";
+    } else if (w < 34) {
+      return "#ffcab4";
+    } else if (w < 36) {
+      return "#ffc1b4";
+    } else {
+      return "ffb4b4";
+    }
+  }
+
   let color = "";
   return (
     <ThemeProvider theme={theme}>
@@ -290,9 +335,19 @@ function App() {
                           justifyContent="center"
                         >
                           <img src={d.wrfWindDirectionImage} />
-                          <Typography variant="caption">
-                            {d.wrfWindAverage} - {d.wrfWindGust}
-                          </Typography>
+                          <Stack
+                            direction="row"
+                            alignItems="center"
+                            justifyContent="center"
+                            width="100%"
+                            sx={{
+                              bgcolor: getWindColor(d.wrfWindAverage),
+                            }}
+                          >
+                            <Typography variant="caption">
+                              {d.wrfWindAverage} - {d.wrfWindGust}
+                            </Typography>
+                          </Stack>
                         </Stack>
                         <Stack
                           direction="row"
@@ -300,9 +355,19 @@ function App() {
                           justifyContent="center"
                         >
                           <img src={d.aromeWindDirectionImage} />
-                          <Typography variant="caption">
-                            {d.aromeWindAverage} - {d.aromeWindGust}
-                          </Typography>
+                          <Stack
+                            direction="row"
+                            alignItems="center"
+                            justifyContent="center"
+                            width="100%"
+                            sx={{
+                              bgcolor: getWindColor(d.aromeWindAverage),
+                            }}
+                          >
+                            <Typography variant="caption">
+                              {d.aromeWindAverage} - {d.aromeWindGust}
+                            </Typography>
+                          </Stack>
                         </Stack>
                       </Stack>
                     </TableCell>
