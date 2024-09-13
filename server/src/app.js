@@ -14,23 +14,46 @@ app.get("/:id/:name/basic", async (req, res) => {
 
   if (data.length) {
     // name
-    const matches = data.match(/<title>.+<\/title>/g);
+    let matches = data.match(/<title>.+<\/title>/g);
     if (matches && matches.length == 1) {
       const i = matches[0].indexOf("pour ") + 5;
       const j = matches[0].indexOf(") -") + 1;
       result.name = matches[0].slice(i, j);
     }
 
-    // basic meteo data
-    // const meteo = {};
-    // let start =
-    //   data.indexOf('<td rowspan=15 align="center" valign="center">') + 46;
-    // let end = data.indexOf("</td></tr></table><br><table width=100%");
-    // const days = data
-    //   .slice(start, end)
-    //   .replaceAll(/<td rowspan=\d+ align="center" valign="center">/g);
-    // let j = data.indexOf("</td>", i);
-    // let date = data.slice(i, j).replaceAll("<br>", " ").trim();
+    // basic data
+    const start =
+      data.indexOf('<td rowspan=15 align="center" valign="center">') + 46;
+    const end = data.indexOf("</td></tr></table><br><table width=100%");
+    const dayTexts = data
+      .slice(start, end)
+      .replaceAll(/<td rowspan=\d+ align="center" valign="center">/g, "|")
+      .split("|");
+
+    result.data = [];
+    for (const dayText of dayTexts) {
+      const day = dayText
+        .slice(0, dayText.indexOf("<br></td>"))
+        .replaceAll("<br>", " ")
+        .trim();
+
+      const hourTexts = dayText.split("<td>");
+      for (let i = 1; i < hourTexts.length; i++) {
+        const text = hourTexts[i];
+        const dataPoint = {
+          day: day,
+          time: text.slice(0, 5),
+        };
+
+        // temperature
+        matches = text.match(/>-?\d+.+C</g);
+        if (matches && matches.length == 1) {
+          dataPoint.temperature = matches[0].slice(1, matches[0].indexOf(" "));
+        }
+
+        result.data.push(dataPoint);
+      }
+    }
   }
 
   res.json(result);
