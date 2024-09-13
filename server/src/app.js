@@ -4,13 +4,14 @@ import axios from "axios";
 const app = express();
 app.use(express.json());
 
-app.get("/:id/:name/basic", async (req, res) => {
+app.get("/:id/:name", async (req, res) => {
   const { id, name } = req.params;
-  const { data } = await axios.get(
+  const result = {};
+
+  // basic data
+  let { data } = await axios.get(
     `https://www.meteociel.com/previsions-wrf-1h/${id}/${name}.htm`
   );
-
-  const result = {};
 
   if (data.length) {
     // name
@@ -21,7 +22,6 @@ app.get("/:id/:name/basic", async (req, res) => {
       result.name = matches[0].slice(i, j);
     }
 
-    // basic data
     let start =
       data.indexOf('<td rowspan=15 align="center" valign="center">') + 46;
     let end = data.indexOf("</td></tr></table><br><table width=100%");
@@ -30,7 +30,7 @@ app.get("/:id/:name/basic", async (req, res) => {
       .replaceAll(/<td rowspan=\d+ align="center" valign="center">/g, "|")
       .split("|");
 
-    result.data = [];
+    result.wrf = [];
     for (const dayText of dayTexts) {
       const day = dayText
         .slice(0, dayText.indexOf("<br></td>"))
@@ -63,7 +63,87 @@ app.get("/:id/:name/basic", async (req, res) => {
           dataPoint.windGust = matches[1].replace(">", "").replace("<", "");
         }
 
-        result.data.push(dataPoint);
+        // meteo img
+        start = text.indexOf("src='", end) + 5;
+        end = text.indexOf("'>", start);
+        dataPoint.meteoImage = text.slice(start, end);
+
+        result.wrf.push(dataPoint);
+      }
+    }
+  }
+
+  // high altitude
+  ({ data } = await axios.get(
+    `https://www.meteociel.com/previsions-haute-altitude-wrf-1h/${id}/${name}.htm`
+  ));
+
+  if (data.length) {
+    let start =
+      data.indexOf('<td rowspan=15 align="center" valign="center">') + 46;
+    let end = data.indexOf("</td></tr></table><br><table width=100%");
+    const dayTexts = data
+      .slice(start, end)
+      .replaceAll(/<td rowspan=\d+ align="center" valign="center">/g, "|")
+      .split("|");
+
+    for (const dayText of dayTexts) {
+      const day = dayText
+        .slice(0, dayText.indexOf("<br></td>"))
+        .replaceAll("<br>", " ")
+        .trim();
+
+      const hourTexts = dayText.split("<td>");
+      for (let i = 1; i < hourTexts.length; i++) {
+        const text = hourTexts[i];
+        const dataPoint = result.wrf.find(
+          (x) => x.day == day && x.time == text.slice(0, 5)
+        );
+
+        if (!dataPoint) continue;
+
+        // skip first column (2m)
+        start = text.indexOf("src='") + 5;
+        end = text.indexOf("' alt", start);
+
+        // wind dir img z850
+        start = text.indexOf("src='", end) + 5;
+        end = text.indexOf("' alt", start);
+        dataPoint.windDirectionImageZ850 = text.slice(start, end);
+
+        // wind dir img z800
+        start = text.indexOf("src='", end) + 5;
+        end = text.indexOf("' alt", start);
+        dataPoint.windDirectionImageZ800 = text.slice(start, end);
+
+        // wind dir img z700
+        start = text.indexOf("src='", end) + 5;
+        end = text.indexOf("' alt", start);
+        dataPoint.windDirectionImageZ700 = text.slice(start, end);
+
+        // wind dir img z600
+        start = text.indexOf("src='", end) + 5;
+        end = text.indexOf("' alt", start);
+        dataPoint.windDirectionImageZ600 = text.slice(start, end);
+
+        // wind dir img z500
+        start = text.indexOf("src='", end) + 5;
+        end = text.indexOf("' alt", start);
+        dataPoint.windDirectionImageZ500 = text.slice(start, end);
+
+        // // wind avg + gust
+        // matches = text.slice(end).match(/>\d+</g);
+        // if (matches && matches.length == 2) {
+        //   dataPoint.windAverage = matches[0].replace(">", "").replace("<", "");
+        //   dataPoint.windGust = matches[1].replace(">", "").replace("<", "");
+        // }
+
+        // // meteo img
+        // start = text.indexOf("src='", end) + 5;
+        // end = text.indexOf("'>", start);
+        // dataPoint.meteoImage = text.slice(start, end);
+
+        // result.wrf.push(dataPoint);
       }
     }
   }
