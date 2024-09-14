@@ -199,7 +199,7 @@ function App() {
     } else if (w < 36) {
       return "#ffc1b4";
     } else {
-      return "ffb4b4";
+      return "#ffb4b4";
     }
   }
 
