@@ -1,0 +1,27 @@
+services:
+  server:
+    build:
+      context: ./server
+    restart: unless-stopped
+
+  caddy:
+    container_name: caddy
+    image: caddy:alpine
+    restart: unless-stopped
+    environment:
+      - NODE_PORT=${REACT_DOCKER_PORT}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - $PWD/Caddyfile:/etc/caddy/Caddyfile
+      - caddy_srv:/srv
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - server
+
+volumes:
+  caddy_srv:
+  caddy_data:
+  caddy_config:

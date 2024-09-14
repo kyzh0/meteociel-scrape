@@ -1,0 +1,10 @@
+testapi.zephyrapp.nz {
+	reverse_proxy server:{$NODE_PORT}
+}
+
+test.zephyrapp.nz {
+	root * /srv
+	encode gzip
+	try_files {path} /index.html
+	file_server
+}
