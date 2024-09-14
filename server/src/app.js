@@ -242,8 +242,9 @@ app.get("/:id/:name", async (req, res) => {
               const soundingHour = Number(data.slice(start, end).slice(-2));
               const offset = Number(dataPoint.time.slice(0, 2)) - soundingHour;
 
+              // only apply offset if > 2 for performance reasons
               // can't apply offsets that result in negative time
-              if (ech + offset > 0) {
+              if (offset > 2 && ech + offset > 0) {
                 dataPoint.wrfSoundingPreviewOffset = offset;
 
                 // load offset preview
