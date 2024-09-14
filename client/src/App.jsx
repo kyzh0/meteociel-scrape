@@ -1,6 +1,7 @@
 import {
   Button,
   createTheme,
+  IconButton,
   Stack,
   Table,
   TableBody,
@@ -15,6 +16,8 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { APIROOT } from "./constants";
 import { useNavigate, useParams } from "react-router-dom";
+
+import SsidChartIcon from "@mui/icons-material/SsidChart";
 
 const theme = createTheme({
   typography: {
@@ -41,7 +44,7 @@ function App() {
     load();
   }, [id, name]);
 
-  function handleClick() {
+  function handleGoClick() {
     const temp = link.split("/");
     setLink("");
     if (temp.length < 2) return;
@@ -178,20 +181,22 @@ function App() {
             onFocus={(e) => e.target.select()}
             sx={{ pr: "0.5rem" }}
           />
-          <Button variant="contained" onClick={handleClick}>
+          <Button variant="contained" onClick={handleGoClick}>
             Go
           </Button>
         </Stack>
+
         {title && (
           <Stack
             direction="row"
             alignItems="center"
             justifyContent="center"
-            sx={{ pt: "1rem", pb: "1rem" }}
+            sx={{ pt: "0.7rem", pb: "0.7rem" }}
           >
             <Typography>{title}</Typography>
           </Stack>
         )}
+
         {data && (
           <Table padding="none">
             <TableHead>
@@ -222,7 +227,9 @@ function App() {
                     alignItems="center"
                     justifyContent="center"
                   >
-                    <Typography variant="caption">1500m</Typography>
+                    <Typography variant="caption" sx={{ fontSize: "0.5rem" }}>
+                      1500m
+                    </Typography>
                   </Stack>
                 </TableCell>
                 <TableCell>
@@ -231,7 +238,9 @@ function App() {
                     alignItems="center"
                     justifyContent="center"
                   >
-                    <Typography variant="caption">2000m</Typography>
+                    <Typography variant="caption" sx={{ fontSize: "0.5rem" }}>
+                      2000m
+                    </Typography>
                   </Stack>
                 </TableCell>
                 <TableCell>
@@ -240,7 +249,9 @@ function App() {
                     alignItems="center"
                     justifyContent="center"
                   >
-                    <Typography variant="caption">3000m</Typography>
+                    <Typography variant="caption" sx={{ fontSize: "0.5rem" }}>
+                      3000m
+                    </Typography>
                   </Stack>
                 </TableCell>
                 <TableCell>
@@ -249,7 +260,9 @@ function App() {
                     alignItems="center"
                     justifyContent="center"
                   >
-                    <Typography variant="caption">4200m</Typography>
+                    <Typography variant="caption" sx={{ fontSize: "0.5rem" }}>
+                      4200m
+                    </Typography>
                   </Stack>
                 </TableCell>
                 <TableCell>
@@ -258,9 +271,12 @@ function App() {
                     alignItems="center"
                     justifyContent="center"
                   >
-                    <Typography variant="caption">5600m</Typography>
+                    <Typography variant="caption" sx={{ fontSize: "0.5rem" }}>
+                      5600m
+                    </Typography>
                   </Stack>
                 </TableCell>
+                <TableCell></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -524,6 +540,66 @@ function App() {
                               : "-"}
                           </Typography>
                         </Stack>
+                      </Stack>
+                    </TableCell>
+                    <TableCell>
+                      <Stack
+                        direction="column"
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <IconButton
+                          color="primary"
+                          sx={{
+                            width: { xs: "18px", sm: "24px" },
+                            height: { xs: "18px", sm: "24px" },
+                            backgroundColor: "none",
+                            color: "#333333",
+                            borderRadius: "4px",
+                            "&:hover": {
+                              backgroundColor: "#f4f4f4",
+                            },
+                          }}
+                          href={d.wrfSoundingLink}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <SsidChartIcon
+                            sx={{
+                              transform: "rotate(270deg)",
+                              width: { xs: "14px", sm: "20px" },
+                              height: { xs: "14px", sm: "20px" },
+                            }}
+                          />
+                        </IconButton>
+                        {d.aromeSoundingLink ? (
+                          <IconButton
+                            color="primary"
+                            sx={{
+                              width: { xs: "18px", sm: "24px" },
+                              height: { xs: "18px", sm: "24px" },
+                              backgroundColor: "none",
+                              color: "#333333",
+                              borderRadius: "4px",
+                              "&:hover": {
+                                backgroundColor: "#f4f4f4",
+                              },
+                            }}
+                            href={d.aromeSoundingLink}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            <SsidChartIcon
+                              sx={{
+                                transform: "rotate(270deg)",
+                                width: { xs: "14px", sm: "20px" },
+                                height: { xs: "14px", sm: "20px" },
+                              }}
+                            />
+                          </IconButton>
+                        ) : (
+                          <Typography variant="caption">- </Typography>
+                        )}
                       </Stack>
                     </TableCell>
                   </TableRow>

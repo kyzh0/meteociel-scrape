@@ -167,6 +167,45 @@ app.get("/:id/:name", async (req, res) => {
     }
   }
 
+  // orage avance
+  ({ data } = await axios.get(
+    `https://www.meteociel.com/previsions-orage-wrf-1h/${id}/${name}.htm`
+  ));
+
+  if (data.length) {
+    let start = data.search(/<td rowspan=\d+ align="center" valign="center">/);
+    let end = data.indexOf("</td></tr></table><br><table width=100%");
+    const dayTexts = data
+      .slice(start, end)
+      .replaceAll(/<td rowspan=\d+ align="center" valign="center">/g, "~?^|")
+      .split("~?^|");
+
+    for (let i = 1; i < dayTexts.length; i++) {
+      const dayText = dayTexts[i];
+      const day = dayText
+        .slice(0, dayText.indexOf("<br></td>"))
+        .replaceAll("<br>", " ")
+        .trim();
+
+      const hourTexts = dayText.split("<td>");
+      for (let j = 1; j < hourTexts.length; j++) {
+        const text = hourTexts[j];
+        const dataPoint = result.data.find(
+          (x) => x.day == day && x.time == text.slice(0, 5)
+        );
+        if (!dataPoint) continue;
+
+        // sounding link
+        start = text.indexOf("javascript:openSoundingWrf(") + 27;
+        end = text.indexOf(")", start);
+        const temp = text.slice(start, end).split(",");
+        if (temp.length == 4) {
+          dataPoint.wrfSoundingLink = `https://www.meteociel.com/modeles/sondage2wrf.php?mode=0&x1=${temp[0]}&y1=${temp[1]}&ech=${temp[2]}`;
+        }
+      }
+    }
+  }
+
   // AROME
   // basic data
   ({ data } = await axios.get(
@@ -310,6 +349,45 @@ app.get("/:id/:name", async (req, res) => {
             .replace(">", "")
             .replace("<", "")
             .trim();
+        }
+      }
+    }
+  }
+
+  // orage avance
+  ({ data } = await axios.get(
+    `https://www.meteociel.com/previsions-orage-arome-1h/${id}/${name}.htm`
+  ));
+
+  if (data.length) {
+    let start = data.search(/<td rowspan=\d+ align="center" valign="center">/);
+    let end = data.indexOf("</td></tr></table><br><table width=100%");
+    const dayTexts = data
+      .slice(start, end)
+      .replaceAll(/<td rowspan=\d+ align="center" valign="center">/g, "~?^|")
+      .split("~?^|");
+
+    for (let i = 1; i < dayTexts.length; i++) {
+      const dayText = dayTexts[i];
+      const day = dayText
+        .slice(0, dayText.indexOf("<br></td>"))
+        .replaceAll("<br>", " ")
+        .trim();
+
+      const hourTexts = dayText.split("<td>");
+      for (let j = 1; j < hourTexts.length; j++) {
+        const text = hourTexts[j];
+        const dataPoint = result.data.find(
+          (x) => x.day == day && x.time == text.slice(0, 5)
+        );
+        if (!dataPoint) continue;
+
+        // sounding link
+        start = text.indexOf("javascript:openSoundingArome(") + 29;
+        end = text.indexOf(")", start);
+        const temp = text.slice(start, end).split(",");
+        if (temp.length == 4) {
+          dataPoint.aromeSoundingLink = `https://www.meteociel.com/modeles/sondage2arome.php?mode=0&lon=${temp[0]}&lat=${temp[1]}&ech=${temp[2]}`;
         }
       }
     }
