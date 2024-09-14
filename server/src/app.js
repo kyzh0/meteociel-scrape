@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import axios from "axios";
+import * as iso88592 from "iso-8859-2";
 
 const app = express();
 app.use(express.json());
@@ -12,9 +13,13 @@ app.get("/:id/:name", async (req, res) => {
 
   // WRF
   // basic data
-  let { data } = await axios.get(
-    `https://www.meteociel.com/previsions-wrf-1h/${id}/${name}.htm`
-  );
+  const response = await axios.request({
+    method: "GET",
+    url: `https://www.meteociel.com/previsions-wrf-1h/${id}/${name}.htm`,
+    responseType: "arraybuffer",
+    responseEncoding: "binary",
+  });
+  let data = iso88592.decode(response.data.toString("binary")); // meteociel is encoded in iso88592
 
   if (data.length) {
     // name
