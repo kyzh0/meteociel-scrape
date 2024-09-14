@@ -9,7 +9,7 @@ services:
     image: caddy:alpine
     restart: unless-stopped
     environment:
-      - NODE_PORT=${REACT_DOCKER_PORT}
+      - NODE_PORT=${NODE_PORT}
     ports:
       - "80:80"
       - "443:443"
@@ -23,5 +23,8 @@ services:
 
 volumes:
   caddy_srv:
+    name: "caddy_srv"
   caddy_data:
+    name: "caddy_data"
   caddy_config:
+    name: "caddy_config"

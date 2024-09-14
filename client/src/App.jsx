@@ -63,20 +63,28 @@ function App() {
   useEffect(() => {
     if (!data || !data.length) return;
 
+    // backend calculates which times to preview
     const result = [];
-
     for (const d of data) {
-      // load preview for 1st entry of the day and/or each 14:00
-      const hour = Number(d.time.slice(0, 2));
-      if (
-        hour === 14 ||
-        (hour > 14 && data[0].day === d.day && data[0].time === d.time)
-      ) {
+      if (d.wrfSoundingPreviewImage) {
+        let img = d.wrfSoundingPreviewImage;
+
+        // apply offset
+        if (d.wrfSoundingPreviewOffset) {
+          const m = img.match(/_\d+_1\.png/g); // extract echeance from url
+          if (m && m.length === 1) {
+            const ech = Number(m[0].replaceAll("_", "").replace("1.png", ""));
+            img = img.replace(
+              m[0],
+              `_${ech + d.wrfSoundingPreviewOffset}_1.png`
+            );
+          }
+        }
+
         result.push({
-          preview: d.wrfSoundingPreviewImage,
+          preview: img,
           link: d.wrfSoundingLink,
         });
-        continue;
       }
     }
 
@@ -209,6 +217,9 @@ function App() {
             value={link}
             onChange={(e) => setLink(e.target.value)}
             onFocus={(e) => e.target.select()}
+            onKeyUp={(e) => {
+              if (e.key === "Enter") handleGoClick();
+            }}
             sx={{ pr: "0.5rem" }}
           />
           <Button variant="contained" onClick={handleGoClick}>
@@ -742,7 +753,7 @@ function App() {
                                   />
                                 </IconButton>
                               ) : (
-                                <Typography variant="caption">- </Typography>
+                                <Typography variant="caption">-</Typography>
                               )}
                             </Stack>
                           </TableCell>

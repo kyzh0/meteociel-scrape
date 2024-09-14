@@ -6,7 +6,8 @@ services:
     ports:
       - "${REACT_LOCAL_PORT}:${REACT_DOCKER_PORT}"
     volumes:
-      - build:/app/build
+      - caddy_srv:/app/build
 
 volumes:
-  build:
+  caddy_srv:
+    external: true

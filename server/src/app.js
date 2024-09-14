@@ -24,7 +24,7 @@ app.get("/:id/:name", async (req, res) => {
   if (data.length) {
     // name
     let matches = data.match(/<title>.+<\/title>/g);
-    if (matches && matches.length == 1) {
+    if (matches && matches.length === 1) {
       const i = matches[0].indexOf("pour ") + 5;
       const j = matches[0].indexOf(") -") + 1;
       result.name = matches[0].slice(i, j);
@@ -41,7 +41,7 @@ app.get("/:id/:name", async (req, res) => {
     for (let i = 1; i < dayTexts.length; i++) {
       const dayText = dayTexts[i];
       const day = dayText
-        .slice(0, dayText.indexOf("<br></td>"))
+        .slice(0, dayText.indexOf("<br><"))
         .replaceAll("<br>", " ")
         .trim();
 
@@ -55,7 +55,7 @@ app.get("/:id/:name", async (req, res) => {
 
         // temperature
         matches = text.match(/>-?\d+.+C</g);
-        if (matches && matches.length == 1) {
+        if (matches && matches.length === 1) {
           dataPoint.wrfTemperature = matches[0].slice(
             1,
             matches[0].indexOf(" ")
@@ -69,7 +69,7 @@ app.get("/:id/:name", async (req, res) => {
 
         // wind avg + gust
         matches = text.slice(end).match(/>\d+</g);
-        if (matches && matches.length == 2) {
+        if (matches && matches.length === 2) {
           dataPoint.wrfWindAverage = matches[0]
             .replace(">", "")
             .replace("<", "");
@@ -102,7 +102,7 @@ app.get("/:id/:name", async (req, res) => {
     for (let i = 1; i < dayTexts.length; i++) {
       const dayText = dayTexts[i];
       const day = dayText
-        .slice(0, dayText.indexOf("<br></td>"))
+        .slice(0, dayText.indexOf("<br><"))
         .replaceAll("<br>", " ")
         .trim();
 
@@ -110,7 +110,7 @@ app.get("/:id/:name", async (req, res) => {
       for (let j = 1; j < hourTexts.length; j++) {
         const text = hourTexts[j];
         const dataPoint = result.data.find(
-          (x) => x.day == day && x.time == text.slice(0, 5)
+          (x) => x.day === day && x.time === text.slice(0, 5)
         );
         if (!dataPoint) continue;
 
@@ -145,7 +145,7 @@ app.get("/:id/:name", async (req, res) => {
 
         // wind avg
         const matches = text.match(/>\s\d+</g);
-        if (matches && matches.length == 6) {
+        if (matches && matches.length === 6) {
           // skip 2m value
           dataPoint.wrfWindAverageZ850 = matches[1]
             .replace(">", "")
@@ -188,7 +188,7 @@ app.get("/:id/:name", async (req, res) => {
     for (let i = 1; i < dayTexts.length; i++) {
       const dayText = dayTexts[i];
       const day = dayText
-        .slice(0, dayText.indexOf("<br></td>"))
+        .slice(0, dayText.indexOf("<br><"))
         .replaceAll("<br>", " ")
         .trim();
 
@@ -196,7 +196,7 @@ app.get("/:id/:name", async (req, res) => {
       for (let j = 1; j < hourTexts.length; j++) {
         const text = hourTexts[j];
         const dataPoint = result.data.find(
-          (x) => x.day == day && x.time == text.slice(0, 5)
+          (x) => x.day === day && x.time === text.slice(0, 5)
         );
         if (!dataPoint) continue;
 
@@ -204,12 +204,17 @@ app.get("/:id/:name", async (req, res) => {
         start = text.indexOf("javascript:openSoundingWrf(") + 27;
         end = text.indexOf(")", start);
         const temp = text.slice(start, end).split(",");
-        if (temp.length == 4) {
-          dataPoint.wrfSoundingLink = `https://www.meteociel.com/modeles/sondage2wrf.php?map=1&x1=${temp[0]}&y1=${temp[1]}&ech=${temp[2]}`;
-          dataPoint.wrfSoundingPreviewImage = `https://www.meteociel.com/modeles/sondagewrf/sondagewrf_${temp[0]}_${temp[1]}_${temp[2]}_1.png`;
+        if (temp.length === 4) {
+          const x1 = temp[0];
+          const y1 = temp[1];
+          const ech = Number(temp[2]);
+
+          dataPoint.wrfSoundingLink = `https://www.meteociel.com/modeles/sondage2wrf.php?map=1&x1=${x1}&y1=${y1}&ech=${ech}`;
 
           // load sounding previews for 1st entry and/or each 14:00
-          // must do this because meteociel only generates the png after loading
+          // must do this because meteociel only generates the png
+          // after loading the page. then, check if the sounding is
+          // offset from the supposed time because meteociel is broken
           const hour = Number(dataPoint.time.slice(0, 2));
           if (
             hour === 14 ||
@@ -217,7 +222,38 @@ app.get("/:id/:name", async (req, res) => {
               result.data[0].day === dataPoint.day &&
               result.data[0].time === dataPoint.time)
           ) {
-            await axios.get(dataPoint.wrfSoundingLink);
+            dataPoint.wrfSoundingPreviewImage = `https://www.meteociel.com/modeles/sondagewrf/sondagewrf_${x1}_${y1}_${ech}_1.png`;
+
+            // force meteociel to generate preview
+            await axios.get(
+              `https://www.meteociel.com/modeles/sondage2wrf.php?map=1&x1=${x1}&y1=${y1}&ech=${ech}`
+            );
+
+            // tableau de valeurs has a text timestamp
+            const { data } = await axios.get(
+              `https://www.meteociel.com/modeles/sondage2wrf.php?map=2&x1=${x1}&y1=${y1}&ech=${ech}`
+            );
+            if (data) {
+              start =
+                data.indexOf(
+                  "<center><table><tr><td align=center class=texte colspan=2><font color=white><b>"
+                ) + 79;
+              end = data.indexOf(":00 locale", start);
+              const soundingHour = Number(data.slice(start, end).slice(-2));
+              const offset = Number(dataPoint.time.slice(0, 2)) - soundingHour;
+
+              // can't apply offsets that result in negative time
+              if (ech + offset > 0) {
+                dataPoint.wrfSoundingPreviewOffset = offset;
+
+                // load offset preview
+                await axios.get(
+                  `https://www.meteociel.com/modeles/sondage2wrf.php?map=1&x1=${x1}&y1=${y1}&ech=${
+                    ech + offset
+                  }`
+                );
+              }
+            }
           }
         }
       }
@@ -241,7 +277,7 @@ app.get("/:id/:name", async (req, res) => {
     for (let i = 1; i < dayTexts.length; i++) {
       const dayText = dayTexts[i];
       const day = dayText
-        .slice(0, dayText.indexOf("<br></td>"))
+        .slice(0, dayText.indexOf("<br><"))
         .replaceAll("<br>", " ")
         .trim();
 
@@ -249,13 +285,13 @@ app.get("/:id/:name", async (req, res) => {
       for (let j = 1; j < hourTexts.length; j++) {
         const text = hourTexts[j];
         const dataPoint = result.data.find(
-          (x) => x.day == day && x.time == text.slice(0, 5)
+          (x) => x.day === day && x.time === text.slice(0, 5)
         );
         if (!dataPoint) continue;
 
         // temperature
         let matches = text.match(/>-?\d+.+C</g);
-        if (matches && matches.length == 1) {
+        if (matches && matches.length === 1) {
           dataPoint.aromeTemperature = matches[0].slice(
             1,
             matches[0].indexOf(" ")
@@ -269,7 +305,7 @@ app.get("/:id/:name", async (req, res) => {
 
         // wind avg + gust
         matches = text.slice(end).match(/>\d+</g);
-        if (matches && matches.length == 2) {
+        if (matches && matches.length === 2) {
           dataPoint.aromeWindAverage = matches[0]
             .replace(">", "")
             .replace("<", "");
@@ -302,7 +338,7 @@ app.get("/:id/:name", async (req, res) => {
     for (let i = 1; i < dayTexts.length; i++) {
       const dayText = dayTexts[i];
       const day = dayText
-        .slice(0, dayText.indexOf("<br></td>"))
+        .slice(0, dayText.indexOf("<br><"))
         .replaceAll("<br>", " ")
         .trim();
 
@@ -310,7 +346,7 @@ app.get("/:id/:name", async (req, res) => {
       for (let j = 1; j < hourTexts.length; j++) {
         const text = hourTexts[j];
         const dataPoint = result.data.find(
-          (x) => x.day == day && x.time == text.slice(0, 5)
+          (x) => x.day === day && x.time === text.slice(0, 5)
         );
         if (!dataPoint) continue;
 
@@ -345,7 +381,7 @@ app.get("/:id/:name", async (req, res) => {
 
         // wind avg
         const matches = text.match(/>\s\d+</g);
-        if (matches && matches.length == 6) {
+        if (matches && matches.length === 6) {
           // skip 2m value
           dataPoint.aromeWindAverageZ850 = matches[1]
             .replace(">", "")
@@ -388,7 +424,7 @@ app.get("/:id/:name", async (req, res) => {
     for (let i = 1; i < dayTexts.length; i++) {
       const dayText = dayTexts[i];
       const day = dayText
-        .slice(0, dayText.indexOf("<br></td>"))
+        .slice(0, dayText.indexOf("<br><"))
         .replaceAll("<br>", " ")
         .trim();
 
@@ -396,7 +432,7 @@ app.get("/:id/:name", async (req, res) => {
       for (let j = 1; j < hourTexts.length; j++) {
         const text = hourTexts[j];
         const dataPoint = result.data.find(
-          (x) => x.day == day && x.time == text.slice(0, 5)
+          (x) => x.day === day && x.time === text.slice(0, 5)
         );
         if (!dataPoint) continue;
 
@@ -404,7 +440,7 @@ app.get("/:id/:name", async (req, res) => {
         start = text.indexOf("javascript:openSoundingArome(") + 29;
         end = text.indexOf(")", start);
         const temp = text.slice(start, end).split(",");
-        if (temp.length == 4) {
+        if (temp.length === 4) {
           dataPoint.aromeSoundingLink = `https://www.meteociel.com/modeles/sondage2arome.php?map=1&lon=${temp[0]}&lat=${temp[1]}&ech=${temp[2]}`;
         }
       }
