@@ -200,7 +200,20 @@ app.get("/:id/:name", async (req, res) => {
         end = text.indexOf(")", start);
         const temp = text.slice(start, end).split(",");
         if (temp.length == 4) {
-          dataPoint.wrfSoundingLink = `https://www.meteociel.com/modeles/sondage2wrf.php?mode=0&x1=${temp[0]}&y1=${temp[1]}&ech=${temp[2]}`;
+          dataPoint.wrfSoundingLink = `https://www.meteociel.com/modeles/sondage2wrf.php?map=1&x1=${temp[0]}&y1=${temp[1]}&ech=${temp[2]}`;
+          dataPoint.wrfSoundingPreviewImage = `https://www.meteociel.com/modeles/sondagewrf/sondagewrf_${temp[0]}_${temp[1]}_${temp[2]}_1.png`;
+
+          // load sounding previews for 1st entry and/or each 14:00
+          // must do this because meteociel only generates the png after loading
+          const hour = Number(dataPoint.time.slice(0, 2));
+          if (
+            hour === 14 ||
+            (hour > 14 &&
+              result.data[0].day === dataPoint.day &&
+              result.data[0].time === dataPoint.time)
+          ) {
+            await axios.get(dataPoint.wrfSoundingLink);
+          }
         }
       }
     }
@@ -387,7 +400,7 @@ app.get("/:id/:name", async (req, res) => {
         end = text.indexOf(")", start);
         const temp = text.slice(start, end).split(",");
         if (temp.length == 4) {
-          dataPoint.aromeSoundingLink = `https://www.meteociel.com/modeles/sondage2arome.php?mode=0&lon=${temp[0]}&lat=${temp[1]}&ech=${temp[2]}`;
+          dataPoint.aromeSoundingLink = `https://www.meteociel.com/modeles/sondage2arome.php?map=1&lon=${temp[0]}&lat=${temp[1]}&ech=${temp[2]}`;
         }
       }
     }
