@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import axios from "axios";
-import * as iso88592 from "iso-8859-2";
+import iconv from "iconv-lite";
 
 const app = express();
 app.use(express.json());
@@ -19,7 +19,7 @@ app.get("/:id/:name", async (req, res) => {
     responseType: "arraybuffer",
     responseEncoding: "binary",
   });
-  let data = iso88592.decode(response.data.toString("binary")); // meteociel is encoded in iso88592
+  let data = iconv.decode(response.data, "ISO-8859-1"); // meteociel is encoded in iso8859-1
 
   if (data.length) {
     // name
@@ -211,10 +211,10 @@ app.get("/:id/:name", async (req, res) => {
 
           dataPoint.wrfSoundingLink = `https://www.meteociel.com/modeles/sondage2wrf.php?map=1&x1=${x1}&y1=${y1}&ech=${ech}`;
 
-          // load sounding previews for 1st entry and/or each 14:00
-          // must do this because meteociel only generates the png
-          // after loading the page. then, check if the sounding is
-          // offset from the supposed time because meteociel is broken
+          // get sounding preview urls for 1st entry and/or each 14:00
+          // then, check if the sounding is offset from the supposed time
+          // because meteociel is broken
+          // images need to be force-generated, this will be initiated by client
           const hour = Number(dataPoint.time.slice(0, 2));
           if (
             hour === 14 ||
@@ -223,11 +223,6 @@ app.get("/:id/:name", async (req, res) => {
               result.data[0].time === dataPoint.time)
           ) {
             dataPoint.wrfSoundingPreviewImage = `https://www.meteociel.com/modeles/sondagewrf/sondagewrf_${x1}_${y1}_${ech}_1.png`;
-
-            // force meteociel to generate preview
-            await axios.get(
-              `https://www.meteociel.com/modeles/sondage2wrf.php?map=1&x1=${x1}&y1=${y1}&ech=${ech}`
-            );
 
             // tableau de valeurs has a text timestamp
             const { data } = await axios.get(
@@ -244,15 +239,13 @@ app.get("/:id/:name", async (req, res) => {
 
               // only apply offset if > 2 for performance reasons
               // can't apply offsets that result in negative time
-              if (offset > 2 && ech + offset > 0) {
-                dataPoint.wrfSoundingPreviewOffset = offset;
-
-                // load offset preview
-                await axios.get(
-                  `https://www.meteociel.com/modeles/sondage2wrf.php?map=1&x1=${x1}&y1=${y1}&ech=${
-                    ech + offset
-                  }`
-                );
+              if (Math.abs(offset) > 2 && ech + offset > 0) {
+                dataPoint.wrfSoundingPreviewImage = `https://www.meteociel.com/modeles/sondagewrf/sondagewrf_${x1}_${y1}_${
+                  ech + offset
+                }_1.png`;
+                dataPoint.wrfSoundingLink = `https://www.meteociel.com/modeles/sondage2wrf.php?map=1&x1=${x1}&y1=${y1}&ech=${
+                  ech + offset
+                }`;
               }
             }
           }
@@ -449,6 +442,13 @@ app.get("/:id/:name", async (req, res) => {
   }
 
   res.json(result);
+});
+
+// force meteociel to generate sounding previews, client will decide if necessary
+app.post("/load-sounding", async (req, res) => {
+  const { url } = req.body;
+  await axios.get(url);
+  res.sendStatus(200);
 });
 
 const port = process.env.NODE_PORT || 5000;

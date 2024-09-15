@@ -41,7 +41,7 @@ function App() {
   const [link, setLink] = useState("");
   const [title, setTitle] = useState(null);
   const [data, setData] = useState(null);
-  const [previews, setPreviews] = useState([]);
+  const [previewsLoaded, setPreviewsLoaded] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -59,37 +59,52 @@ function App() {
     load();
   }, [id, name]);
 
-  // setup previews
+  // load sounding previews if not mobile view
   useEffect(() => {
     if (!data || !data.length) return;
 
-    // backend calculates which times to preview
-    const result = [];
-    for (const d of data) {
-      if (d.wrfSoundingPreviewImage) {
-        let img = d.wrfSoundingPreviewImage;
-
-        // apply offset
-        if (d.wrfSoundingPreviewOffset) {
-          const m = img.match(/_\d+_1\.png/g); // extract echeance from url
-          if (m && m.length === 1) {
-            const ech = Number(m[0].replaceAll("_", "").replace("1.png", ""));
-            img = img.replace(
-              m[0],
-              `_${ech + d.wrfSoundingPreviewOffset}_1.png`
-            );
-          }
+    async function load() {
+      const previewsVisible = window.matchMedia("(min-width: 600px)").matches; // mui 'sm' = 600px
+      if (previewsVisible) {
+        for (const d of data) {
+          if (d.wrfSoundingPreviewImage && d.wrfSoundingLink)
+            await axios.post(`${APIROOT}/load-sounding`, {
+              url: d.wrfSoundingLink,
+            });
         }
 
-        result.push({
-          preview: img,
-          link: d.wrfSoundingLink,
-        });
+        await setTimeout(() => {
+          setPreviewsLoaded(true);
+        }, 1000);
       }
     }
 
-    setPreviews(result);
+    load();
   }, [data]);
+
+  // force load previews on window resize if not already loaded
+  useEffect(() => {
+    async function handleResize() {
+      if (!data || !data.length) return;
+
+      const previewsVisible = window.matchMedia("(min-width: 600px)").matches; // mui 'sm' = 600px
+      if (previewsVisible && !previewsLoaded) {
+        for (const d of data) {
+          if (d.wrfSoundingPreviewImage && d.wrfSoundingLink)
+            await axios.post(`${APIROOT}/load-sounding`, {
+              url: d.wrfSoundingLink,
+            });
+        }
+
+        await setTimeout(() => {
+          setPreviewsLoaded(true);
+        }, 1000);
+      }
+    }
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [id, name, previewsLoaded, data]);
 
   function handleGoClick() {
     const temp = link.split("/");
@@ -762,7 +777,7 @@ function App() {
                     })}
                   </TableBody>
                 </Table>
-                {previews && (
+                {previewsLoaded && data && (
                   <Stack
                     direction="column"
                     justifyContent="space-around"
@@ -772,22 +787,26 @@ function App() {
                       width: { sm: "40%", md: "50%" },
                     }}
                   >
-                    {previews.map((p) => (
-                      <Box
-                        key={p.link}
-                        component="a"
-                        href={p.link}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <Box
-                          component="img"
-                          src={p.preview}
-                          alt="WRF Sounding Preview"
-                          sx={{ width: "100%" }}
-                        />
-                      </Box>
-                    ))}
+                    {data.map((d) => {
+                      return (
+                        d.wrfSoundingPreviewImage && (
+                          <Box
+                            key={`${d.day} ${d.time}`}
+                            component="a"
+                            href={d.wrfSoundingLink}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            <Box
+                              component="img"
+                              src={d.wrfSoundingPreviewImage}
+                              alt="WRF Sounding Preview"
+                              sx={{ width: "100%" }}
+                            />
+                          </Box>
+                        )
+                      );
+                    })}
                   </Stack>
                 )}
               </Stack>
