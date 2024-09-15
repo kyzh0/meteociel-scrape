@@ -41,12 +41,15 @@ function App() {
   const [link, setLink] = useState("");
   const [title, setTitle] = useState(null);
   const [data, setData] = useState(null);
-  const [previewsLoaded, setPreviewsLoaded] = useState(false);
+  const [previewsLoading, setPreviewsLoading] = useState(false);
+  const [previewsReady, setPreviewsReady] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     async function load() {
       if (!id || !name) return;
+
+      setPreviewsReady(false);
 
       setLoading(true);
       const { data } = await axios.get(`${APIROOT}/${id}/${name}`);
@@ -68,14 +71,11 @@ function App() {
       if (previewsVisible) {
         for (const d of data) {
           if (d.wrfSoundingPreviewImage && d.wrfSoundingLink)
-            await axios.post(`${APIROOT}/load-sounding`, {
+            axios.post(`${APIROOT}/load-sounding`, {
               url: d.wrfSoundingLink,
             });
         }
-
-        await setTimeout(() => {
-          setPreviewsLoaded(true);
-        }, 1000);
+        setPreviewsLoading(true);
       }
     }
 
@@ -88,23 +88,40 @@ function App() {
       if (!data || !data.length) return;
 
       const previewsVisible = window.matchMedia("(min-width: 600px)").matches; // mui 'sm' = 600px
-      if (previewsVisible && !previewsLoaded) {
+      if (previewsVisible && !previewsReady) {
         for (const d of data) {
           if (d.wrfSoundingPreviewImage && d.wrfSoundingLink)
-            await axios.post(`${APIROOT}/load-sounding`, {
+            axios.post(`${APIROOT}/load-sounding`, {
               url: d.wrfSoundingLink,
             });
         }
-
-        await setTimeout(() => {
-          setPreviewsLoaded(true);
-        }, 1000);
+        setPreviewsLoading(true);
       }
     }
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [id, name, previewsLoaded, data]);
+  }, [id, name, previewsReady, data]);
+
+  // poll to check if soundings are finished loading
+  useEffect(() => {
+    if (!previewsLoading || !data || !data.length) return;
+
+    async function checkSounding() {
+      for (const d of data.filter((el) => el.wrfSoundingPreviewImage)) {
+        await axios.post(`${APIROOT}/check-sounding`, {
+          url: d.wrfSoundingPreviewImage,
+        });
+      }
+
+      setTimeout(() => {
+        setPreviewsLoading(false);
+        setPreviewsReady(true);
+      }, 500);
+    }
+
+    checkSounding();
+  }, [previewsLoading, data]);
 
   function handleGoClick() {
     const temp = link.split("/");
@@ -777,7 +794,7 @@ function App() {
                     })}
                   </TableBody>
                 </Table>
-                {previewsLoaded && data && (
+                {previewsReady && data && (
                   <Stack
                     direction="column"
                     justifyContent="space-around"

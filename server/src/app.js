@@ -451,5 +451,18 @@ app.post("/load-sounding", async (req, res) => {
   res.sendStatus(200);
 });
 
+// force meteociel to generate sounding previews, client will decide if necessary
+app.post("/check-sounding", async (req, res) => {
+  const { url } = req.body;
+
+  const timer = setInterval(async () => {
+    const { status } = await axios.get(url);
+    if (status === 200) {
+      clearInterval(timer);
+      res.sendStatus(200);
+    }
+  }, 1000);
+});
+
 const port = process.env.NODE_PORT || 5000;
 app.listen(port, () => console.log(`Server running on port ${port}`));
