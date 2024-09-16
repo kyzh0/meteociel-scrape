@@ -1,8 +1,8 @@
-testapi.zephyrapp.nz {
+meteocielapi.zephyrapp.nz {
 	reverse_proxy server:{$NODE_PORT}
 }
 
-test.zephyrapp.nz {
+meteociel.zephyrapp.nz {
 	root * /srv
 	encode gzip
 	try_files {path} /index.html
