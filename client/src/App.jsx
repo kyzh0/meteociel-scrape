@@ -23,8 +23,19 @@ import SsidChartIcon from "@mui/icons-material/SsidChart";
 
 const theme = createTheme({
   typography: {
+    subtitle1: {
+      fontSize: "0.5rem",
+      // sm breakpoint
+      "@media (min-width:600px)": {
+        fontSize: "0.7rem",
+      },
+    },
     caption: {
       fontSize: "0.7rem",
+      // sm breakpoint
+      "@media (min-width:600px)": {
+        fontSize: "1rem",
+      },
     },
   },
   palette: {
@@ -57,6 +68,8 @@ function App() {
 
       setTitle(data.name);
       setData(data.data);
+
+      document.title = data.name;
     }
 
     load();
@@ -293,7 +306,14 @@ function App() {
                   sx={{ width: { xs: "100%", sm: "60%", md: "50%" } }}
                 >
                   <TableHead>
-                    <TableRow>
+                    <TableRow
+                      sx={{
+                        position: "sticky",
+                        top: 0,
+                        zIndex: 10,
+                        bgcolor: "#fff",
+                      }}
+                    >
                       <TableCell></TableCell>
                       <TableCell>
                         <Stack
@@ -301,7 +321,7 @@ function App() {
                           alignItems="center"
                           justifyContent="center"
                         >
-                          <Typography variant="caption">°C</Typography>
+                          <Typography variant="subtitle1">°C</Typography>
                         </Stack>
                       </TableCell>
                       <TableCell></TableCell>
@@ -311,7 +331,7 @@ function App() {
                           alignItems="center"
                           justifyContent="center"
                         >
-                          <Typography variant="caption">2m</Typography>
+                          <Typography variant="subtitle1">2m</Typography>
                         </Stack>
                       </TableCell>
                       <TableCell>
@@ -320,12 +340,7 @@ function App() {
                           alignItems="center"
                           justifyContent="center"
                         >
-                          <Typography
-                            variant="caption"
-                            sx={{ fontSize: "0.5rem" }}
-                          >
-                            1500m
-                          </Typography>
+                          <Typography variant="subtitle1">1500m</Typography>
                         </Stack>
                       </TableCell>
                       <TableCell>
@@ -334,12 +349,7 @@ function App() {
                           alignItems="center"
                           justifyContent="center"
                         >
-                          <Typography
-                            variant="caption"
-                            sx={{ fontSize: "0.5rem" }}
-                          >
-                            2000m
-                          </Typography>
+                          <Typography variant="subtitle1">2000m</Typography>
                         </Stack>
                       </TableCell>
                       <TableCell>
@@ -348,12 +358,7 @@ function App() {
                           alignItems="center"
                           justifyContent="center"
                         >
-                          <Typography
-                            variant="caption"
-                            sx={{ fontSize: "0.5rem" }}
-                          >
-                            3000m
-                          </Typography>
+                          <Typography variant="subtitle1">3000m</Typography>
                         </Stack>
                       </TableCell>
                       <TableCell>
@@ -362,12 +367,7 @@ function App() {
                           alignItems="center"
                           justifyContent="center"
                         >
-                          <Typography
-                            variant="caption"
-                            sx={{ fontSize: "0.5rem" }}
-                          >
-                            4200m
-                          </Typography>
+                          <Typography variant="subtitle1">4200m</Typography>
                         </Stack>
                       </TableCell>
                       <TableCell>
@@ -376,15 +376,12 @@ function App() {
                           alignItems="center"
                           justifyContent="center"
                         >
-                          <Typography
-                            variant="caption"
-                            sx={{ fontSize: "0.5rem" }}
-                          >
-                            5600m
-                          </Typography>
+                          <Typography variant="subtitle1">5600m</Typography>
                         </Stack>
                       </TableCell>
-                      <TableCell></TableCell>
+                      <TableCell>
+                        <Typography variant="subtitle1">em.</Typography>
+                      </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
