@@ -6,6 +6,7 @@ import {
   TableBody,
   TableCell,
   TableRow,
+  Typography,
 } from "@mui/material";
 import axios from "axios";
 import { useEffect, useState } from "react";
@@ -27,7 +28,6 @@ function Search() {
 
       setLoading(true);
       const { data } = await axios.get(`${APIROOT}/search/?q=${q}`);
-      setLoading(false);
 
       if (data.length === 1) {
         const temp = data[0].url.split("/");
@@ -43,6 +43,7 @@ function Search() {
       }
 
       setResults(data);
+      setLoading(false);
     }
 
     load();
@@ -59,7 +60,7 @@ function Search() {
         >
           <CircularProgress />
         </Stack>
-      ) : (
+      ) : results.length ? (
         <Stack
           direction="row"
           justifyContent="center"
@@ -96,6 +97,10 @@ function Search() {
             </TableBody>
           </Table>
         </Stack>
+      ) : (
+        <Typography sx={{ color: "red", p: "1rem" }}>
+          No results found for "{searchParams.get("q")}"
+        </Typography>
       )}
     </>
   );

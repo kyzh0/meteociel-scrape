@@ -460,19 +460,25 @@ app.get("/search", async (req, res) => {
 
   const result = [];
   if (data.length) {
-    let start = data.search("France : </b><br><li> ") + 22;
-    let end = data.indexOf("</li></td></tr></table></center><br><b>");
+    // not found
+    if (data.includes("Aucune ville correspondant")) {
+      res.json(result);
+      return;
+    }
 
     // single match
-    if (end === -1) {
-      start = data.search("location.href='") + 15;
-      end = data.search("';</script>");
+    if (!data.includes("</li></td></tr></table></center><br><b>")) {
+      const start = data.search("location.href='") + 15;
+      const end = data.search("';</script>");
       const path = data.slice(start, end).trim();
 
       result.push({ name: q, url: `https://www.meteociel.com${path}` });
       res.json(result);
       return;
     }
+
+    const start = data.search("France : </b><br><li> ") + 22;
+    const end = data.indexOf("</li></td></tr></table></center><br><b>");
 
     // multi match
     const locationTexts = data
