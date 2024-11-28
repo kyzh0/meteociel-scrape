@@ -29,11 +29,24 @@ function Search() {
       const { data } = await axios.get(`${APIROOT}/search/?q=${q}`);
       setLoading(false);
 
+      if (data.length === 1) {
+        const temp = data[0].url.split("/");
+        if (temp.length < 2) return;
+
+        navigate(
+          `../${temp[temp.length - 2]}/${temp[temp.length - 1].replace(
+            ".htm",
+            ""
+          )}`
+        );
+        return;
+      }
+
       setResults(data);
     }
 
     load();
-  }, [searchParams]);
+  }, [searchParams, navigate]);
 
   return (
     <>

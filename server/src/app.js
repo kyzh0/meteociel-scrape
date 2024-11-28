@@ -461,6 +461,19 @@ app.get("/search", async (req, res) => {
   if (data.length) {
     let start = data.search("France : </b><br><li> ") + 22;
     let end = data.indexOf("</li></td></tr></table></center><br><b>");
+
+    // single match
+    if (end === -1) {
+      start = data.search("location.href='") + 15;
+      end = data.search("';</script>");
+      const path = data.slice(start, end).trim();
+
+      result.push({ name: q, url: `https://www.meteociel.com${path}` });
+      res.json(result);
+      return;
+    }
+
+    // multi match
     const locationTexts = data
       .slice(start, end)
       .replaceAll("</li><li>", "~?^|")

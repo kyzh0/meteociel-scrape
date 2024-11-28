@@ -7,7 +7,7 @@ function SearchBar() {
   const navigate = useNavigate();
 
   function handleGoClick() {
-    const regex = /https:\/\/www.meteociel.com\/previsions\/\d+\/.+.htm/g;
+    const regex = /https:\/\/www\.meteociel\.com\/.+\/\d+\/.+.htm/g;
     if (query && query.match(regex)) {
       const temp = query.split("/");
       setQuery("");
