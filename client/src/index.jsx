@@ -1,8 +1,11 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
-import Forecast from "./routes/Forecast";
 import { createTheme, ThemeProvider } from "@mui/material";
+
+import Home from "./routes/Home";
+import Forecast from "./routes/Forecast";
+import Search from "./routes/Search";
 
 const theme = createTheme({
   typography: {
@@ -32,11 +35,15 @@ const theme = createTheme({
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Forecast />,
+    element: <Home />,
     children: [
       {
-        path: "/:id/:name",
+        path: ":id/:name",
         element: <Forecast />,
+      },
+      {
+        path: "search",
+        element: <Search />,
       },
     ],
   },

@@ -444,6 +444,50 @@ app.get("/:id/:name", async (req, res) => {
   res.json(result);
 });
 
+app.get("/search", async (req, res) => {
+  const { q } = req.query;
+  const response = await axios.request({
+    method: "GET",
+    url: `https://www.meteociel.com/prevville.php?action=getville&ville=${q.replace(
+      " ",
+      "+"
+    )}&envoyer=ici`,
+    responseType: "arraybuffer",
+    responseEncoding: "binary",
+  });
+  let data = iconv.decode(response.data, "ISO-8859-1");
+
+  const result = [];
+  if (data.length) {
+    let start = data.search("France : </b><br><li> ") + 22;
+    let end = data.indexOf("</li></td></tr></table></center><br><b>");
+    const locationTexts = data
+      .slice(start, end)
+      .replaceAll("</li><li>", "~?^|")
+      .split("~?^|");
+
+    for (const locText of locationTexts) {
+      const path = locText
+        .slice(0, locText.indexOf(">"))
+        .replaceAll("<a href=", "")
+        .replaceAll("'", "")
+        .trim();
+
+      const name = locText
+        .slice(locText.indexOf(">") + 1, locText.indexOf("</a>"))
+        .replaceAll("&nbsp;", " ")
+        .trim();
+
+      result.push({
+        name: name,
+        url: `https://www.meteociel.com${path}`,
+      });
+    }
+  }
+
+  res.json(result);
+});
+
 // force meteociel to generate sounding previews, client will decide if necessary
 app.post("/load-sounding", async (req, res) => {
   const { url } = req.body;

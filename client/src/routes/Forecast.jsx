@@ -16,7 +16,6 @@ import { APIROOT } from "../constants";
 import { useParams } from "react-router-dom";
 
 import SsidChartIcon from "@mui/icons-material/SsidChart";
-import SearchBar from "../components/SearchBar";
 
 function Forecast() {
   const { id, name } = useParams();
@@ -210,9 +209,7 @@ function Forecast() {
 
   let rowColor = "";
   return (
-    <Stack direction="column" width="100%" height="100%">
-      <SearchBar />
-
+    <>
       {loading ? (
         <Stack
           direction="row"
@@ -762,7 +759,7 @@ function Forecast() {
           )}
         </Box>
       )}
-    </Stack>
+    </>
   );
 }
 
