@@ -64,17 +64,14 @@ function Search() {
           direction="row"
           justifyContent="center"
           alignItems="center"
-          sx={{ width: "100%", pt: "10rem" }}
+          sx={{ width: "100%", p: "1rem" }}
         >
-          <Table
-            padding="none"
-            sx={{ width: { xs: "100%", sm: "60%", md: "50%" } }}
-          >
+          <Table padding="none">
             <TableBody>
               {results.map((r) => {
                 return (
                   <TableRow key={r.name}>
-                    <TableCell sx={{ border: "none" }}>
+                    <TableCell sx={{ border: "none", pb: "0.3rem" }}>
                       <Link
                         href={r.url}
                         onClick={(e) => {

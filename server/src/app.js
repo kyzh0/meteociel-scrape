@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import axios from "axios";
 import iconv from "iconv-lite";
+import { decode } from "html-entities";
 
 const app = express();
 app.use(express.json());
@@ -486,10 +487,12 @@ app.get("/search", async (req, res) => {
         .replaceAll("'", "")
         .trim();
 
-      const name = locText
-        .slice(locText.indexOf(">") + 1, locText.indexOf("</a>"))
-        .replaceAll("&nbsp;", " ")
-        .trim();
+      const name = decode(
+        locText
+          .slice(locText.indexOf(">") + 1, locText.indexOf("</a>"))
+          .replaceAll("&nbsp;", " ")
+          .trim()
+      );
 
       result.push({
         name: name,

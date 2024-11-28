@@ -27,9 +27,9 @@ function SearchBar() {
         <TextField
           fullWidth
           size="small"
-          id="link"
-          label="link"
-          name="link"
+          id="search"
+          label="search"
+          name="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={(e) => e.target.select()}
